@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Orders - QuickBite</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a class="brand" href="index.html">🍔 QuickBite</a>
+  <div class="nav-links">
+    <a href="cart.html">🛒 Cart</a>
+    <a href="orders.html">My Orders</a>
+    <a href="#" onclick="logout()" style="color:#fff">Logout</a>
+  </div>
+</nav>
+<div class="container" style="max-width:640px;">
+  <h3 class="mb-3">My Orders</h3>
+  <div id="orderList"></div>
+</div>
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script>
+requireAuth();
+const currentUser = getSession();
+const orders = getOrders(currentUser).sort((a, b) => b.created - a.created);
+const list = document.getElementById('orderList');
+
+list.innerHTML = orders.length === 0
+  ? '<div class="card empty-state">You haven\'t placed any orders yet.</div>'
+  : orders.map(o => `
+    <div class="card mb-3">
+      <div class="flex-between">
+        <h5 class="mb-0">${o.restaurantName}</h5>
+        <span class="badge badge-primary">${o.status}</span>
+      </div>
+      <small class="text-muted">${new Date(o.created).toLocaleString()}</small>
+      <ul class="mt-2 mb-2">
+        ${o.items.map(it => `<li>${it.name} &times; ${it.quantity} — ₹${(it.price * it.quantity).toFixed(2)}</li>`).join('')}
+      </ul>
+      <strong>Total: ₹${o.total.toFixed(2)}</strong>
+    </div>
+  `).join('');
+</script>
+</body>
+</html>

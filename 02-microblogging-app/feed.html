@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Feed - Chirp</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a class="brand" href="feed.html">🐦 Chirp</a>
+  <div class="nav-links">
+    <a href="feed.html">Home</a>
+    <a href="explore.html">Explore</a>
+    <a href="profile.html" id="myProfileLink">My Profile</a>
+    <a href="#" onclick="logout()" style="color:#fff">Logout</a>
+  </div>
+</nav>
+<div class="container" style="max-width:640px;">
+  <div class="card mb-3">
+    <form id="postForm">
+      <textarea id="content" maxlength="280" rows="2" placeholder="What's happening?" required></textarea>
+      <div class="flex-between">
+        <small class="text-muted" id="charCount">280 characters left</small>
+        <button class="btn btn-primary">Post</button>
+      </div>
+    </form>
+  </div>
+  <h4>Your Feed</h4>
+  <div id="feedList"></div>
+</div>
+<script src="js/auth.js"></script>
+<script src="js/posts.js"></script>
+<script>
+requireAuth();
+const currentUser = getSession();
+document.getElementById('myProfileLink').href = `profile.html?user=${currentUser}`;
+
+const contentEl = document.getElementById('content');
+contentEl.addEventListener('input', () => {
+  document.getElementById('charCount').textContent = `${280 - contentEl.value.length} characters left`;
+});
+
+document.getElementById('postForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const content = contentEl.value.trim();
+  if (!content) return;
+  addPost(currentUser, content);
+  this.reset();
+  document.getElementById('charCount').textContent = '280 characters left';
+  renderFeed();
+});
+
+function renderFeed() {
+  const users = getUsers();
+  const me = users.find(u => u.username === currentUser);
+  const followingSet = new Set([...(me.following || []), currentUser]);
+  const posts = getPosts()
+    .filter(p => followingSet.has(p.username))
+    .sort((a, b) => b.created - a.created);
+
+  const list = document.getElementById('feedList');
+  if (posts.length === 0) {
+    list.innerHTML = '<div class="card empty-state">Nothing here yet. Follow people from Explore to see their posts!</div>';
+    return;
+  }
+  list.innerHTML = posts.map(p => `
+    <div class="card mb-2">
+      <div class="flex-between">
+        <div>
+          <a href="profile.html?user=${p.username}" style="font-weight:700;text-decoration:none;color:var(--text)">@${p.username}</a>
+          <small class="text-muted"> · ${new Date(p.created).toLocaleString()}</small>
+          <p class="mb-0 mt-2">${escapeHtml(p.content)}</p>
+        </div>
+        ${p.username === currentUser ? `<button class="btn btn-outline-danger btn-sm" onclick="removePost(${p.id});renderFeed();">Delete</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+renderFeed();
+</script>
+</body>
+</html>

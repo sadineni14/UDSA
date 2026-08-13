@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login - Chirp</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="container-narrow">
+  <div class="card">
+    <h2>🐦 Login</h2>
+    <div id="formMsg"></div>
+    <form id="loginForm">
+      <label>Username</label>
+      <input type="text" id="username" required autofocus>
+      <label>Password</label>
+      <input type="password" id="password" required>
+      <button type="submit" class="btn btn-primary btn-block">Login</button>
+    </form>
+    <p class="text-center mt-3">No account? <a href="register.html">Register</a></p>
+  </div>
+</div>
+<script src="js/auth.js"></script>
+<script>
+  redirectIfLoggedIn();
+  document.getElementById('loginForm').addEventListener('submit', handleLogin);
+</script>
+</body>
+</html>

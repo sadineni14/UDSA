@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profile - Chirp</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a class="brand" href="feed.html">🐦 Chirp</a>
+  <div class="nav-links">
+    <a href="feed.html">Home</a>
+    <a href="explore.html">Explore</a>
+    <a href="profile.html" id="myProfileLink">My Profile</a>
+    <a href="#" onclick="logout()" style="color:#fff">Logout</a>
+  </div>
+</nav>
+<div class="container" style="max-width:640px;">
+  <div id="profileHeader" class="card mb-3"></div>
+  <div id="bioEditor"></div>
+  <h4>Posts</h4>
+  <div id="postList"></div>
+</div>
+<script src="js/auth.js"></script>
+<script src="js/posts.js"></script>
+<script>
+requireAuth();
+const currentUser = getSession();
+document.getElementById('myProfileLink').href = `profile.html?user=${currentUser}`;
+
+const params = new URLSearchParams(window.location.search);
+const targetUsername = params.get('user') || currentUser;
+const users = getUsers();
+const user = users.find(u => u.username === targetUsername);
+
+if (!user) {
+  document.getElementById('profileHeader').innerHTML = '<p class="text-muted">User not found.</p>';
+} else {
+  const isMe = targetUsername === currentUser;
+  document.getElementById('profileHeader').innerHTML = `
+    <div class="flex-between">
+      <div>
+        <h3 class="mb-0">@${user.username}</h3>
+        <p class="text-muted mb-2">${user.bio ? escapeHtml(user.bio) : 'No bio yet.'}</p>
+        <small class="text-muted">${followingCount(user.username)} following · ${followerCount(user.username)} followers</small>
+      </div>
+      ${!isMe ? `<button class="btn ${isFollowing(currentUser, user.username) ? 'btn-outline' : 'btn-primary'}" onclick="toggleFollow('${currentUser}','${user.username}');window.location.reload();">
+        ${isFollowing(currentUser, user.username) ? 'Unfollow' : 'Follow'}
+      </button>` : ''}
+    </div>
+  `;
+
+  if (isMe) {
+    document.getElementById('bioEditor').innerHTML = `
+      <div class="card mb-3">
+        <label>Edit your bio</label>
+        <form id="bioForm">
+          <textarea id="bioInput" rows="2">${user.bio || ''}</textarea>
+          <button class="btn btn-primary btn-sm">Save Bio</button>
+        </form>
+      </div>
+    `;
+    document.getElementById('bioForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const all = getUsers();
+      const me = all.find(u => u.username === currentUser);
+      me.bio = document.getElementById('bioInput').value.trim();
+      saveUsers(all);
+      window.location.reload();
+    });
+  }
+
+  const posts = getPosts().filter(p => p.username === user.username).sort((a, b) => b.created - a.created);
+  const list = document.getElementById('postList');
+  list.innerHTML = posts.length === 0
+    ? '<div class="card empty-state">No posts yet.</div>'
+    : posts.map(p => `
+      <div class="card mb-2">
+        <small class="text-muted">${new Date(p.created).toLocaleString()}</small>
+        <p class="mb-0 mt-1">${escapeHtml(p.content)}</p>
+      </div>
+    `).join('');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>

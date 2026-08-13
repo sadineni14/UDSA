@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Post an Ad - MarketPlace</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a class="brand" href="index.html">🏷️ MarketPlace</a>
+  <div class="nav-links">
+    <a href="post.html">+ Post Ad</a>
+    <a href="my-listings.html">My Listings</a>
+    <a href="#" onclick="logout()" style="color:#fff">Logout</a>
+  </div>
+</nav>
+<div class="container-narrow">
+  <div class="card">
+    <h3>Post a New Listing</h3>
+    <form id="postForm">
+      <label>Title</label>
+      <input type="text" id="title" required>
+      <label>Description</label>
+      <textarea id="description" rows="3"></textarea>
+      <label>Price (₹)</label>
+      <input type="number" id="price" step="0.01" min="0" required>
+      <label>Category</label>
+      <select id="category"></select>
+      <label>Image URL (optional)</label>
+      <input type="text" id="imageUrl" placeholder="https://...">
+      <button class="btn btn-primary btn-block">Post Listing</button>
+    </form>
+  </div>
+</div>
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script>
+requireAuth();
+const currentUser = getSession();
+document.getElementById('category').innerHTML = categoryOptions();
+
+document.getElementById('postForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  addListing({
+    title: document.getElementById('title').value.trim(),
+    description: document.getElementById('description').value.trim(),
+    price: Number(document.getElementById('price').value) || 0,
+    category: document.getElementById('category').value,
+    imageUrl: document.getElementById('imageUrl').value.trim(),
+    seller: currentUser
+  });
+  window.location.href = 'my-listings.html';
+});
+</script>
+</body>
+</html>

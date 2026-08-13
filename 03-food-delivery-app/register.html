@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Register - QuickBite</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="container-narrow">
+  <div class="card">
+    <h2>🍔 Create Account</h2>
+    <div id="formMsg"></div>
+    <form id="registerForm">
+      <label>Username</label>
+      <input type="text" id="username" required autofocus>
+      <label>Password</label>
+      <input type="password" id="password" required>
+      <label>Delivery Address</label>
+      <input type="text" id="address">
+      <button type="submit" class="btn btn-primary btn-block">Register</button>
+    </form>
+    <p class="text-center mt-3">Already have an account? <a href="login.html">Login</a></p>
+  </div>
+</div>
+<script src="js/auth.js"></script>
+<script>
+  redirectIfLoggedIn();
+  document.getElementById('registerForm').addEventListener('submit', handleRegister);
+</script>
+</body>
+</html>

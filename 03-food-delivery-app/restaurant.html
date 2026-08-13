@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menu - QuickBite</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a class="brand" href="index.html">🍔 QuickBite</a>
+  <div class="nav-links">
+    <a href="cart.html">🛒 Cart</a>
+    <a href="orders.html">My Orders</a>
+    <a href="#" onclick="logout()" style="color:#fff">Logout</a>
+  </div>
+</nav>
+<div class="container">
+  <a href="index.html" class="btn btn-outline btn-sm mb-3">&larr; Back to Restaurants</a>
+  <div id="restaurantHeader"></div>
+  <div class="grid grid-2 mt-3" id="menuList"></div>
+</div>
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script>
+requireAuth();
+const params = new URLSearchParams(window.location.search);
+const rid = Number(params.get('id'));
+const restaurant = getRestaurants().find(r => r.id === rid);
+
+if (!restaurant) {
+  document.getElementById('restaurantHeader').innerHTML = '<p class="text-muted">Restaurant not found.</p>';
+} else {
+  document.getElementById('restaurantHeader').innerHTML = `
+    <h3 class="mb-1">${restaurant.name} <span class="badge badge-muted">${restaurant.cuisine}</span></h3>
+    <p class="text-muted">${restaurant.description}</p>
+  `;
+  document.getElementById('menuList').innerHTML = restaurant.menu.map(item => `
+    <div class="card flex-between">
+      <div>
+        <h5 class="mb-1">${item.name}</h5>
+        <p class="text-muted mb-1" style="font-size:0.85rem;">${item.description}</p>
+        <strong>₹${item.price.toFixed(2)}</strong>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="addToCart(${restaurant.id}, ${item.id}); this.textContent='Added ✓';">Add to Cart</button>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>

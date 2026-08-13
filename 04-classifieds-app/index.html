@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Browse Listings - MarketPlace</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a class="brand" href="index.html">🏷️ MarketPlace</a>
+  <div class="nav-links">
+    <a href="post.html">+ Post Ad</a>
+    <a href="my-listings.html">My Listings</a>
+    <a href="#" onclick="logout()" style="color:#fff">Logout</a>
+  </div>
+</nav>
+<div class="container">
+  <form class="grid" style="grid-template-columns:2fr 1fr 120px;gap:12px;align-items:start;" id="filterForm">
+    <input type="text" id="q" placeholder="Search listings...">
+    <select id="category">
+      <option value="">All Categories</option>
+    </select>
+    <button class="btn btn-primary" style="height:41px;">Search</button>
+  </form>
+  <div class="grid grid-3" id="listingGrid"></div>
+</div>
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script>
+requireAuth();
+document.getElementById('category').innerHTML += CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+
+function render() {
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const category = document.getElementById('category').value;
+  let listings = getListings().filter(l => l.status === 'Available');
+  if (q) listings = listings.filter(l => l.title.toLowerCase().includes(q));
+  if (category) listings = listings.filter(l => l.category === category);
+  listings.sort((a, b) => b.created - a.created);
+
+  const grid = document.getElementById('listingGrid');
+  grid.innerHTML = listings.length === 0
+    ? '<div class="card empty-state">No listings found.</div>'
+    : listings.map(l => `
+      <div class="card">
+        ${l.imageUrl ? `<img src="${l.imageUrl}" style="width:100%;height:140px;object-fit:cover;border-radius:8px;margin-bottom:10px;">` : ''}
+        <h5 class="mb-1">${escapeHtml(l.title)}</h5>
+        <span class="badge badge-muted mb-2">${l.category}</span>
+        <p style="color:var(--success);font-weight:700;">₹${Number(l.price).toFixed(2)}</p>
+        <p class="text-muted" style="font-size:0.82rem;">by ${l.seller}</p>
+        <a href="detail.html?id=${l.id}" class="btn btn-outline btn-sm">View Details</a>
+      </div>
+    `).join('');
+}
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+document.getElementById('filterForm').addEventListener('submit', e => { e.preventDefault(); render(); });
+document.getElementById('category').addEventListener('change', render);
+render();
+</script>
+</body>
+</html>

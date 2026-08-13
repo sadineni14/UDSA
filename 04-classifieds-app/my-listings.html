@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Listings - MarketPlace</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a class="brand" href="index.html">🏷️ MarketPlace</a>
+  <div class="nav-links">
+    <a href="post.html">+ Post Ad</a>
+    <a href="my-listings.html">My Listings</a>
+    <a href="#" onclick="logout()" style="color:#fff">Logout</a>
+  </div>
+</nav>
+<div class="container">
+  <h3 class="mb-3">My Listings</h3>
+  <div id="listingList"></div>
+</div>
+
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);align-items:center;justify-content:center;">
+  <div class="card" style="width:420px;">
+    <h4>Edit Listing</h4>
+    <form id="editForm">
+      <input type="hidden" id="editId">
+      <label>Title</label>
+      <input type="text" id="editTitle" required>
+      <label>Description</label>
+      <textarea id="editDescription" rows="2"></textarea>
+      <label>Price (₹)</label>
+      <input type="number" id="editPrice" step="0.01" min="0" required>
+      <label>Category</label>
+      <select id="editCategory"></select>
+      <label>Image URL</label>
+      <input type="text" id="editImageUrl">
+      <div class="flex gap-2">
+        <button class="btn btn-primary" type="submit">Save</button>
+        <button class="btn btn-outline" type="button" onclick="closeEditModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script>
+requireAuth();
+const currentUser = getSession();
+
+function render() {
+  const listings = getListings().filter(l => l.seller === currentUser).sort((a, b) => b.created - a.created);
+  const list = document.getElementById('listingList');
+  list.innerHTML = listings.length === 0
+    ? '<div class="card empty-state">You haven\'t posted any listings yet.</div>'
+    : listings.map(l => `
+      <div class="card mb-2 flex-between">
+        <div>
+          <strong>${escapeHtml(l.title)}</strong>
+          <span class="badge ${l.status === 'Available' ? 'badge-success' : 'badge-muted'}">${l.status}</span>
+          <div class="text-muted" style="font-size:0.85rem;">₹${Number(l.price).toFixed(2)} · ${l.category}</div>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-outline btn-sm" onclick="openEdit(${l.id})">Edit</button>
+          <button class="btn btn-outline btn-sm" onclick="toggleSold(${l.id})">${l.status === 'Sold' ? 'Mark Available' : 'Mark Sold'}</button>
+          <button class="btn btn-outline-danger btn-sm" onclick="remove(${l.id})">Delete</button>
+        </div>
+      </div>
+    `).join('');
+}
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function toggleSold(id) {
+  const l = getListings().find(x => x.id === id);
+  updateListing(id, { status: l.status === 'Sold' ? 'Available' : 'Sold' });
+  render();
+}
+function remove(id) {
+  if (!confirm('Delete this listing?')) return;
+  deleteListing(id);
+  render();
+}
+function openEdit(id) {
+  const l = getListings().find(x => x.id === id);
+  document.getElementById('editId').value = l.id;
+  document.getElementById('editTitle').value = l.title;
+  document.getElementById('editDescription').value = l.description || '';
+  document.getElementById('editPrice').value = l.price;
+  document.getElementById('editCategory').innerHTML = categoryOptions(l.category);
+  document.getElementById('editImageUrl').value = l.imageUrl || '';
+  document.getElementById('editModal').style.display = 'flex';
+}
+function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+document.getElementById('editForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const id = Number(document.getElementById('editId').value);
+  updateListing(id, {
+    title: document.getElementById('editTitle').value.trim(),
+    description: document.getElementById('editDescription').value.trim(),
+    price: Number(document.getElementById('editPrice').value) || 0,
+    category: document.getElementById('editCategory').value,
+    imageUrl: document.getElementById('editImageUrl').value.trim()
+  });
+  closeEditModal();
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

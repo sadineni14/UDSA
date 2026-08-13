@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Restaurants - QuickBite</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a class="brand" href="index.html">🍔 QuickBite</a>
+  <div class="nav-links">
+    <a href="cart.html">🛒 Cart</a>
+    <a href="orders.html">My Orders</a>
+    <a href="#" onclick="logout()" style="color:#fff">Logout</a>
+  </div>
+</nav>
+<div class="container">
+  <h3 class="mb-3">Restaurants near you</h3>
+  <div class="grid grid-2" id="restaurantList"></div>
+</div>
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script>
+requireAuth();
+const restaurants = getRestaurants();
+document.getElementById('restaurantList').innerHTML = restaurants.map(r => `
+  <div class="card">
+    <h4 class="mb-2">${r.name}</h4>
+    <span class="badge badge-muted mb-2">${r.cuisine}</span>
+    <p class="text-muted">${r.description}</p>
+    <a href="restaurant.html?id=${r.id}" class="btn btn-primary">View Menu</a>
+  </div>
+`).join('');
+</script>
+</body>
+</html>

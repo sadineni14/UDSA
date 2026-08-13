@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explore - Chirp</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a class="brand" href="feed.html">🐦 Chirp</a>
+  <div class="nav-links">
+    <a href="feed.html">Home</a>
+    <a href="explore.html">Explore</a>
+    <a href="profile.html" id="myProfileLink">My Profile</a>
+    <a href="#" onclick="logout()" style="color:#fff">Logout</a>
+  </div>
+</nav>
+<div class="container" style="max-width:640px;">
+  <h4>Discover People</h4>
+  <div id="userList"></div>
+</div>
+<script src="js/auth.js"></script>
+<script src="js/posts.js"></script>
+<script>
+requireAuth();
+const currentUser = getSession();
+document.getElementById('myProfileLink').href = `profile.html?user=${currentUser}`;
+
+function render() {
+  const others = getUsers().filter(u => u.username !== currentUser);
+  const list = document.getElementById('userList');
+  if (others.length === 0) {
+    list.innerHTML = '<div class="card empty-state">No other users yet. Invite some friends to register!</div>';
+    return;
+  }
+  list.innerHTML = others.map(u => `
+    <div class="card mb-2 flex-between">
+      <div>
+        <a href="profile.html?user=${u.username}" style="font-weight:700;text-decoration:none;color:var(--text)">@${u.username}</a>
+        <p class="text-muted mb-0" style="font-size:0.85rem;">${u.bio ? escapeHtml(u.bio) : 'No bio yet.'}</p>
+      </div>
+      <button class="btn ${isFollowing(currentUser, u.username) ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="toggleFollow('${currentUser}','${u.username}');render();">
+        ${isFollowing(currentUser, u.username) ? 'Unfollow' : 'Follow'}
+      </button>
+    </div>
+  `).join('');
+}
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+render();
+</script>
+</body>
+</html>

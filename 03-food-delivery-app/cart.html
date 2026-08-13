@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cart - QuickBite</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a class="brand" href="index.html">🍔 QuickBite</a>
+  <div class="nav-links">
+    <a href="cart.html">🛒 Cart</a>
+    <a href="orders.html">My Orders</a>
+    <a href="#" onclick="logout()" style="color:#fff">Logout</a>
+  </div>
+</nav>
+<div class="container" style="max-width:640px;">
+  <h3 class="mb-3">Your Cart</h3>
+  <div id="cartContent"></div>
+</div>
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script>
+requireAuth();
+const currentUser = getSession();
+
+function render() {
+  const cart = getCart();
+  const container = document.getElementById('cartContent');
+  const entries = Object.entries(cart.items);
+  if (entries.length === 0) {
+    container.innerHTML = '<div class="card empty-state">Your cart is empty. <a href="index.html">Browse restaurants</a>.</div>';
+    return;
+  }
+  const restaurant = getRestaurants().find(r => r.id === cart.restaurantId);
+  let total = 0;
+  let rows = '';
+  entries.forEach(([itemId, qty]) => {
+    const item = restaurant.menu.find(m => m.id === Number(itemId));
+    if (!item) return;
+    const subtotal = item.price * qty;
+    total += subtotal;
+    rows += `
+      <div class="card mb-2 flex-between">
+        <div>
+          <strong>${item.name}</strong> &times; ${qty}
+          <div class="text-muted" style="font-size:0.85rem;">₹${item.price.toFixed(2)} each</div>
+        </div>
+        <div class="flex gap-2" style="align-items:center;">
+          <strong>₹${subtotal.toFixed(2)}</strong>
+          <button class="btn btn-outline-danger btn-sm" onclick="removeFromCart(${itemId}); render();">Remove</button>
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = `
+    <p class="text-muted">Ordering from <strong>${restaurant.name}</strong></p>
+    ${rows}
+    <div class="card mt-3 flex-between">
+      <h5 class="mb-0">Total: ₹${total.toFixed(2)}</h5>
+      <button class="btn btn-success" onclick="checkout()">Place Order</button>
+    </div>
+  `;
+}
+
+function checkout() {
+  const order = placeOrder(currentUser);
+  if (order) window.location.href = 'orders.html';
+}
+
+render();
+</script>
+</body>
+</html>

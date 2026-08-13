@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Listing Detail - MarketPlace</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a class="brand" href="index.html">🏷️ MarketPlace</a>
+  <div class="nav-links">
+    <a href="post.html">+ Post Ad</a>
+    <a href="my-listings.html">My Listings</a>
+    <a href="#" onclick="logout()" style="color:#fff">Logout</a>
+  </div>
+</nav>
+<div class="container" style="max-width:640px;">
+  <a href="index.html" class="btn btn-outline btn-sm mb-3">&larr; Back</a>
+  <div id="detailContent" class="card"></div>
+</div>
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script>
+requireAuth();
+const params = new URLSearchParams(window.location.search);
+const id = Number(params.get('id'));
+const listing = getListings().find(l => l.id === id);
+const container = document.getElementById('detailContent');
+
+if (!listing) {
+  container.innerHTML = '<p class="text-muted">Listing not found.</p>';
+} else {
+  container.innerHTML = `
+    ${listing.imageUrl ? `<img src="${listing.imageUrl}" style="width:100%;max-height:300px;object-fit:cover;border-radius:8px;margin-bottom:14px;">` : ''}
+    <h3>${escapeHtml(listing.title)} <span class="badge ${listing.status === 'Available' ? 'badge-success' : 'badge-muted'}">${listing.status}</span></h3>
+    <span class="badge badge-muted mb-2">${listing.category}</span>
+    <h4 style="color:var(--success);">₹${Number(listing.price).toFixed(2)}</h4>
+    <p>${escapeHtml(listing.description || '')}</p>
+    <p class="text-muted">Posted by <strong>${listing.seller}</strong> on ${new Date(listing.created).toLocaleDateString()}</p>
+  `;
+}
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
